@@ -1,0 +1,74 @@
+---
+title: "Exploración de datos de desarrollo"
+format: 
+  html:
+    code-fold: true #Esto solo sirve para html y lo que hace es esconde el codigo
+    toc: true #toc (table of content: tabla de contenidos)
+    toc-location: left # pongo la tabla de contenidos a la izquierda
+    theme: flatly #aca cambio la fuente tipografica y todo el tema del documento
+editor: visual
+lang: es # Esto es para setear el idioma (Es: espaniol) 
+self-contained: true # Esto me hace un unico archivo autocontenido (mas pesado)
+---
+
+```{r}
+#| message: false
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(gt)
+library(gghighlight)
+library(glue) # Esto es para pegar cosas. 
+
+datos_desarrollo <- read_csv(here::here("datos/datos-reporte-actualizados.csv"))
+
+# Vamos a guardar algunas varaibles importantes:
+max_anio <- max(datos_desarrollo$anio) #Anio mas nuevo
+min_anio <- min(datos_desarrollo$anio) #Anio mas viejo
+lista_paises <- glue_collapse(unique(datos_desarrollo$pais), sep= ", ", last = " y ") # glue collapse me toma los datos de una lista todos juntos, en este caso me los separa con una coma y el ultimo me los separa con un "y". La lista son los valores unicos de los paises. 
+
+# En este primer chang de codigo se pueden poner los datos y todo lo que yo quiera llamar a lo largo del texto. 
+
+```
+
+Quiero hacer un codigo flexible para poder actualizar la BBDD.
+
+Estos datos se obtuvieron de la pagina web del rpoyecto [Gapminder](https://www.gapminder.org/tools/ "Title/Tooltip: Aca le puedo poner un mensajito para cuando pase el cursos"). Este conjunto de datos tiene informacion sobre `r n_distinct(datos_desarrollo$pais)` paises de Latinoamerica (`r lista_paises`), para variables como poblacion, PIB per capita y esperanza de vida. Cubre desde el año `r min_anio` al `r max_anio`.
+
+## PIB per capita para `r max_anio`
+
+La @fig-pib-latam muestra los valores del PIB per capita en dolares para el año `r max_anio` para los paises incluidos en la muestra:
+
+```{r}
+#| label: fig-pib-latam
+#| fig-cap: "Existen grandes diferencias entre el PIB per capita de los paises de latinoamerica"
+#| fig-cap-location: margin #aca me cambia la ubicacion del pie de figura
+datos_desarrollo %>% 
+  filter(anio == max_anio) |> # uso el ultimo anio de la BBDD
+  ggplot(aes(reorder(pais, -pib), pib)) + # Si le digo reorder por pib me ordena de menor a mayor, y -pib me ordena de mayor a menor
+  geom_col() + 
+  labs(x = NULL, 
+       title = paste("PIB per capita del anio", max_anio)) +
+  theme_minimal()
+```
+
+## PIB per capita de Uruguay
+
+La Figura 2 muestra la evolucion del PIB per capita en Uruguay.
+
+```{r}
+#| label: fig-pib-uruguay
+#| fig-cap: "Luego de una baja em 2002 el PIB per capita aumento durante los anios siguientes"
+#| fig-cap-location: margin
+datos_desarrollo %>% 
+  filter(pais == "Uruguay") %>%
+  ggplot(aes(anio, pib))+ 
+  geom_line() + 
+  scale_y_continuous(limits = c(0, 16500), 
+                     labels = scales::label_dollar()) + 
+  theme_minimal()
+```
+
+Si uno mueve las figuras, se mueve la numeracion sola. No hay error.
+
+Se pueden agregar referencias bibliograficas.

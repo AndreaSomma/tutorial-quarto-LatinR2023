@@ -1,0 +1,57 @@
+---
+title: "Primer ejemplo Quarto"
+format: html
+editor: visual
+---
+
+## Las opciones de código
+
+Vamos a escribir un poco de texto y ahora vamos a insertar un bloque de codigo.
+
+```{r}
+#| message: false
+
+library(datos)
+library(dplyr)
+library(ggplot2)
+
+paises %>% 
+  filter(pais == "Uruguay") %>% 
+  ggplot(aes(anio, pib_per_capita)) + 
+  geom_col()
+
+uruguay <- paises |>
+  filter(pais == "Uruguay")
+
+min(uruguay$pib_per_capita)
+
+
+```
+
+En los datos incluidos en esta muestra el PIB mas bajo fue de 5445.76. Como me puedo equivocar en el numero, tambien le puedo decir que me de el numero con un inline codigo (ctrl+d) `r min(uruguay$pib_per_capita)`. Esto tambien lo puedo hacer apretando el botoncito del codigo. Este numero se puede formatear, por ejemplo, le puedo decir que solamente quiero dos cifras despues de la coma `r round(min(uruguay$pib_per_capita), 2)`. Esto nos asegura que no haya errores humanos o que se vaya actualizando la informacion con la que vas a ir trabajando.
+
+Uno tambien puede ir guardando variables (en un codigo de r) que luego vas citando.
+
+Otro ejemplo: `r filter(paises, pais == "Chile") |> summarize(mean(pib_per_capita))|>pull()`
+
+## Importar un script
+
+Algo que puedo hacer con Quarto es pedir que me ejecute datos que vienen de un script. Entonces, para el ejemplo voy a trabajar con los datos del script de procesamiento.
+
+```{r}
+source(here::here("Codigo/01_procesamiento-datos.R"))
+
+head(datos_tuberculosis)
+```
+
+Si yo en el chunk de codigo escribo source("codigo/01_procesamiento-datos.R") me da un error. Esto es porque el archivo de quarto no define el nivel del proyecto como el proyecto mismo, sino donde esta el archivo. Quarto asume que el proyecto es su nivel de trabajo. Hay dos formas de sortear esto: para archivos individuales: here del paquete here. En caso de que este trabajando en un proyecto, puedo setearle al quarto cual es el nivel del proyecto.
+
+Puedo hacer un grafico con los datos de tuberculosis
+
+```{r}
+ggplot(datos_tuberculosis, aes(anio, casos, fill = paises)) + 
+  geom_col()
+
+```
+
+Si yo borro lo que esta en el environmnet, el quarto corre con render, pero no corre el codigo dentro del chunk. Esto es porque no estan los datos cargados en el environment. Cada vez que el reporte de quarto se renderea corre "una sesion" de R nueva, donde los resultados que se muestran en el reporte son posibles con el render del quarto. Esto nos asegura que los reportes sean reproducibles y que no dependa de variables que cree en la consola o por error
